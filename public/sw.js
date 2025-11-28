@@ -34,16 +34,32 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Helper function to check if request is cacheable
+function isCacheableRequest(request) {
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') return false;
+  
+  // Skip chrome-extension and other non-http(s) schemes
+  if (!url.protocol.startsWith('http')) return false;
+  
+  // Skip API requests
+  if (url.pathname.startsWith('/api/')) return false;
+  
+  // Skip Supabase requests
+  if (url.hostname.includes('supabase.co')) return false;
+  
+  // Skip authentication related
+  if (url.pathname.includes('/auth/callback')) return false;
+  
+  return true;
+}
+
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
-
-  // Skip API requests (let them fail naturally)
-  if (event.request.url.includes('/api/')) return;
-
-  // Skip Supabase requests
-  if (event.request.url.includes('supabase.co')) return;
+  // Skip non-cacheable requests
+  if (!isCacheableRequest(event.request)) return;
 
   event.respondWith(
     fetch(event.request)
@@ -54,7 +70,11 @@ self.addEventListener('fetch', (event) => {
         // Cache successful responses
         if (response.status === 200) {
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            try {
+              cache.put(event.request, responseToCache);
+            } catch (e) {
+              console.warn('Cache put failed:', e);
+            }
           });
         }
 
@@ -89,8 +109,8 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body || 'Yeni bir bildiriminiz var',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    icon: '/icons/icon.svg',
+    badge: '/icons/icon.svg',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/',
@@ -136,11 +156,9 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncFortuneReadings() {
-  // Implement sync logic for fortune readings
   console.log('Syncing fortune readings...');
 }
 
 async function syncJournalEntries() {
-  // Implement sync logic for journal entries
   console.log('Syncing journal entries...');
 }

@@ -78,17 +78,21 @@ export default function RegisterPage() {
       if (signUpError) throw signUpError
 
       if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName,
-            coins: 50, // Welcome bonus
-          })
-
-        if (profileError) throw profileError
+        // Try to create profile with upsert to handle existing profiles
+        try {
+          await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              email: data.user.email,
+              full_name: fullName,
+              coins: 50,
+            }, {
+              onConflict: 'id'
+            })
+        } catch (profileErr) {
+          console.warn('Profile creation warning:', profileErr)
+        }
 
         // Fetch profile
         const { data: profile } = await supabase
@@ -106,7 +110,12 @@ export default function RegisterPage() {
         router.push('/onboarding')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Kayıt olurken bir hata oluştu')
+      const errorMessage = err instanceof Error ? err.message : 'Kayıt olurken bir hata oluştu'
+      if (!errorMessage.includes('duplicate') && !errorMessage.includes('already')) {
+        setError(errorMessage)
+      } else {
+        router.push('/auth/login')
+      }
     } finally {
       setLoading(false)
     }
@@ -139,7 +148,7 @@ export default function RegisterPage() {
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <h1 className="mt-4 text-3xl font-bold text-slate-900 dark:text-white">
-            Aura'ya Katıl
+            Aura&apos;ya Katıl
           </h1>
           <p className="mt-2 text-slate-500 dark:text-slate-400">
             Mistik yolculuğuna başla
@@ -186,11 +195,7 @@ export default function RegisterPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-10 text-slate-400 hover:text-slate-600"
               >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
 
@@ -204,15 +209,9 @@ export default function RegisterPage() {
                 {passwordRequirements.map((req, index) => (
                   <div
                     key={index}
-                    className={`flex items-center gap-2 text-sm ${
-                      req.met ? 'text-emerald-600' : 'text-slate-400'
-                    }`}
+                    className={`flex items-center gap-2 text-sm ${req.met ? 'text-emerald-600' : 'text-slate-400'}`}
                   >
-                    <div
-                      className={`flex h-4 w-4 items-center justify-center rounded-full ${
-                        req.met ? 'bg-emerald-100' : 'bg-slate-100'
-                      }`}
-                    >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full ${req.met ? 'bg-emerald-100' : 'bg-slate-100'}`}>
                       {req.met && <Check className="h-3 w-3" />}
                     </div>
                     {req.label}
@@ -229,11 +228,7 @@ export default function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               icon={<Lock className="h-5 w-5" />}
-              error={
-                confirmPassword.length > 0 && !passwordsMatch
-                  ? 'Şifreler eşleşmiyor'
-                  : undefined
-              }
+              error={confirmPassword.length > 0 && !passwordsMatch ? 'Şifreler eşleşmiyor' : undefined}
               required
             />
 
@@ -246,14 +241,10 @@ export default function RegisterPage() {
                 className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
               />
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                <Link href="/terms" className="text-teal-600 hover:underline">
-                  Kullanım Koşulları
-                </Link>{' '}
-                ve{' '}
-                <Link href="/privacy" className="text-teal-600 hover:underline">
-                  Gizlilik Politikası
-                </Link>
-                'nı okudum ve kabul ediyorum.
+                <Link href="/terms" className="text-teal-600 hover:underline">Kullanım Koşulları</Link>
+                {' '}ve{' '}
+                <Link href="/privacy" className="text-teal-600 hover:underline">Gizlilik Politikası</Link>
+                &apos;nı okudum ve kabul ediyorum.
               </span>
             </label>
 
@@ -289,28 +280,12 @@ export default function RegisterPage() {
           </div>
 
           {/* Social Sign Up */}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignUp}
-          >
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
+              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
             {t.auth.continueWithGoogle}
           </Button>
@@ -318,10 +293,7 @@ export default function RegisterPage() {
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-slate-500">
             {t.auth.haveAccount}{' '}
-            <Link
-              href="/auth/login"
-              className="font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400"
-            >
+            <Link href="/auth/login" className="font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400">
               {t.auth.login}
             </Link>
           </p>
