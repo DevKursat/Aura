@@ -1,0 +1,102 @@
+{
+  "name": "Aura - Yaşam Rehberiniz",
+  "short_name": "Aura",
+  "description": "Fal, meditasyon, günlük ve rüya defteri ile yaşamınıza anlam katın",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#14b8a6",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Ana Sayfa"
+    },
+    {
+      "src": "/screenshots/fortune.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Fal Baktır"
+    }
+  ],
+  "categories": ["lifestyle", "entertainment", "health"],
+  "shortcuts": [
+    {
+      "name": "Kahve Falı",
+      "short_name": "Kahve",
+      "description": "Kahve falı baktır",
+      "url": "/fortunes/coffee",
+      "icons": [{ "src": "/icons/coffee.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Tarot",
+      "short_name": "Tarot",
+      "description": "Tarot falı baktır",
+      "url": "/fortunes/tarot",
+      "icons": [{ "src": "/icons/tarot.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Meditasyon",
+      "short_name": "Meditasyon",
+      "description": "Meditasyon yap",
+      "url": "/meditation",
+      "icons": [{ "src": "/icons/meditation.png", "sizes": "96x96" }]
+    }
+  ]
+}
